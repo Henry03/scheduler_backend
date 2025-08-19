@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String      @id @default(ulid())
+  name        String
+  username    String      @unique
+  password    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  channels    Channel[]
+  schedules   Schedule[]
+  tags        Tag[]
+}
+
+model Channel {
+  id          String      @id @default(ulid())
+  userId      String
+  type        ChannelType
+  webhookUrl  String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminderLogs  ReminderLog[]
+  scheduleChannels ScheduleChannel[]
+}
+
+model Schedule {
+  id                    String @id @default("")
+  userId                String
+  seriesId              String
+  tagId                 String
+  title                 String
+  description           String
+  ai                    Boolean
+  instruction           String?
+  startTime             DateTime @db.Timestamp()
+  endTime               DateTime @db.Timestamp()
+
+  reminders             Reminder[]
+  scheduleChannels       ScheduleChannel[]
+  skipScheduleTags       SkipScheduleTag[]
+
+  tag                  Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScheduleChannel {
+  id          String @id @default(ulid())
+  scheduleId  String
+  channelId    String
+  createdAt   DateTime @default(now())
+
+  schedule    Schedule            @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  channel     Channel             @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}
+
+model SkipScheduleTag {
+  id          String @id @default(ulid())
+  scheduleId  String
+  tagId       String
+  createdAt   DateTime @default(now())
+
+  schedule    Schedule            @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  tag         Tag                 @relation(fields: [tagId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id          String      @id @default(ulid())
+  name        String
+  userId      String
+  color       String
+  createdAt   DateTime    @default(now())
+  
+  schedules    Schedule[]
+  skipScheduleTag SkipScheduleTag[]
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id          String @id @default("")
+  scheduleId  String
+  type        ReminderType
+  value       Int
+  triggerAt   DateTime
+  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  reminderLogs ReminderLog[]
+}
+
+model ReminderLog {
+  id          String      @id @default(ulid())
+  reminderId  String
+  channelId   String
+  sentAt      DateTime    @default(now())
+  status      DeliveryStatus
+  response    String?
+
+  reminder    Reminder    @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  channel     Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}
+
+// model Skip{
+//   id          String @id @default("")
+//   scheduleId  String
+//   type        SkipType
+//   value       Int
+
+//   schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+// }
+
+// enum SkipType {
+//   DAILY
+//   WEEKLY
+//   MONTHLY
+//   YEARLY
+// }
+
+enum ReminderType{
+  SECONDS
+  MINUTES
+  HOURS
+  DAYS
+}
+
+enum RepeatType {
+  SECONDLY
+  MINUTELY
+  HOURLY
+  DAILY
+  MONTHLY
+  YEARLy
+}
+
+enum ChannelType {
+  WHATSAPP
+  TELEGRAM
+  TEAMS
+  SLACK
+  EMAIL
+  CUSTOM
+}
+
+enum DeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
