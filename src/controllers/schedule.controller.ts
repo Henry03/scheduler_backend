@@ -34,10 +34,10 @@ export const create = async(req: Request, res: Response, next: NextFunction) => 
         }
 
         const seriesId = ulid();
-        const baseStartTime = new Date(startTime);
-        const baseEndTime = new Date(endTime);
+        const baseStartTime = new Date(startTime + "Z");
+        const baseEndTime = new Date(endTime + "Z");
 
-        const baseStart = new Date(startTime);
+        const baseStart = new Date(startTime + "Z");
 
         const remindersWithTrigger = (reminders || []).map((r: ReminderInterface) => {
             const offsetMs = getMsOffset(r.type, r.value);
