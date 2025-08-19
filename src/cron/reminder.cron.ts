@@ -67,6 +67,9 @@ export function reminderCron() {
                 }
             }
         });
+
+        console.log("test")
+        console.log(dueReminders)
         
         for (const reminder of dueReminders) {
             console.log(`Triggering reminder: ${reminder.id}`);

@@ -28,7 +28,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "dev": "cross-env TZ=Asia/Jakarta nodemon --watch src --ext ts --exec tsx src/server.ts",
+    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
     "build": "tsc",
     "start": "tsx src/server.ts"
   },
